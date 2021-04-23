@@ -1,5 +1,7 @@
 # Coffee PHP - CSV
 
+![Build](https://github.com/Coffee-PHP/CSV/workflows/Build/badge.svg)
+
 Provides classes for handling CSV data.
 
 ```

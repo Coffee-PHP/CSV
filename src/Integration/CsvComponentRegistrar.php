@@ -39,11 +39,18 @@ use CoffeePhp\Di\Contract\ContainerInterface;
 final class CsvComponentRegistrar implements ComponentRegistrarInterface
 {
     /**
+     * CsvComponentRegistrar constructor.
+     */
+    public function __construct(private ContainerInterface $di)
+    {
+    }
+
+    /**
      * @inheritDoc
      */
-    public function register(ContainerInterface $di): void
+    public function register(): void
     {
-        $di->bind(CsvTranslatorInterface::class, CsvTranslator::class);
-        $di->bind(CsvTranslator::class, CsvTranslator::class);
+        $this->di->bind(CsvTranslatorInterface::class, CsvTranslator::class);
+        $this->di->bind(CsvTranslator::class, CsvTranslator::class);
     }
 }

@@ -30,8 +30,6 @@ use CoffeePhp\Csv\Exception\CsvSerializeException;
 use CoffeePhp\Csv\Exception\CsvUnserializeException;
 use Throwable;
 
-use function is_array;
-use function is_string;
 use function str_getcsv;
 use function str_putcsv;
 
@@ -50,19 +48,9 @@ final class CsvTranslator implements CsvTranslatorInterface
     public function serializeArray(array $array): string
     {
         try {
-            $csv = str_putcsv($array);
-            if (!is_string($csv)) {
-                throw new CsvSerializeException("Array provided is not in a valid CSV format.");
-            }
-            return $csv;
-        } catch (CsvUnserializeException $e) {
-            throw $e;
+            return (string)str_putcsv($array);
         } catch (Throwable $e) {
-            throw new CsvSerializeException(
-                "Failed to serialize array to CSV format: {$e->getMessage()}",
-                (int)$e->getCode(),
-                $e
-            );
+            throw new CsvSerializeException($e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 
@@ -72,20 +60,9 @@ final class CsvTranslator implements CsvTranslatorInterface
     public function unserializeArray(string $string): array
     {
         try {
-            /** @var array|mixed $array */
-            $array = str_getcsv($string);
-            if (!is_array($array)) {
-                throw new CsvUnserializeException("String provided is not a valid CSV: $string");
-            }
-            return $array;
-        } catch (CsvUnserializeException $e) {
-            throw $e;
+            return str_getcsv($string);
         } catch (Throwable $e) {
-            throw new CsvUnserializeException(
-                "Failed to unserialize array to CSV format: {$e->getMessage()}",
-                (int)$e->getCode(),
-                $e
-            );
+            throw new CsvUnserializeException($e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 }

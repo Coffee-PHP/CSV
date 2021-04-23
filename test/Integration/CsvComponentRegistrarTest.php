@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace CoffeePhp\Csv\Test\Integration;
 
+use CoffeePhp\ComponentRegistry\ComponentRegistry;
 use CoffeePhp\Csv\Contract\CsvTranslatorInterface;
 use CoffeePhp\Csv\CsvTranslator;
 use CoffeePhp\Csv\Integration\CsvComponentRegistrar;
@@ -49,8 +50,8 @@ final class CsvComponentRegistrarTest extends TestCase
     public function testRegister(): void
     {
         $di = new Container();
-        $registrar = new CsvComponentRegistrar();
-        $registrar->register($di);
+        $registry = new ComponentRegistry($di);
+        $registry->register(CsvComponentRegistrar::class);
 
         assertTrue($di->has(CsvTranslatorInterface::class));
         assertTrue($di->has(CsvTranslator::class));

@@ -26,10 +26,8 @@ declare(strict_types=1);
 namespace CoffeePhp\Csv\Test\Unit;
 
 use CoffeePhp\Csv\CsvTranslator;
-use CoffeePhp\FileSystem\Contract\Data\Path\FileInterface;
-use CoffeePhp\FileSystem\Data\Path\PathNavigator;
-use CoffeePhp\FileSystem\FileManager;
 use CoffeePhp\QualityTools\TestCase;
+use SplFileObject;
 
 use function explode;
 use function PHPUnit\Framework\assertSame;
@@ -44,23 +42,15 @@ use function PHPUnit\Framework\assertSame;
 final class CsvTranslatorTest extends TestCase
 {
     private CsvTranslator $translator;
-    private FileInterface $file;
     private array $fileData;
+    private SplFileObject $file;
 
     /**
-     * CsvTranslatorTest constructor.
-     * @param string|null $name
-     * @param array $data
-     * @param string $dataName
-     * @noinspection PhpUndefinedMethodInspection
+     * @before
      */
-    public function __construct(?string $name = null, array $data = [], string $dataName = '')
+    public function setupDependencies(): void
     {
-        parent::__construct($name, $data, $dataName);
         $this->translator = new CsvTranslator();
-        $this->file = (new FileManager())->getFile(
-            (new PathNavigator(__DIR__))->up()->Fake()->down('dummy.csv')
-        );
         $this->fileData = [
             ['id', 'first_name', 'last_name', 'email', 'gender', 'ip_address'],
             ['1', 'Annabell', 'Bentinck', 'abentinck0@mapy.cz', 'Female', '58.61.141.234'],
@@ -72,8 +62,12 @@ final class CsvTranslatorTest extends TestCase
             ['7', 'Gawain', 'Houlston', 'ghoulston6@harvard.edu', 'Male', '227.100.124.221'],
             ['8', 'Kariotta', 'Stotherfield', 'kstotherfield7@tripod.com', 'Female', '130.87.80.85'],
             ['9', 'Benny', 'Panniers', 'bpanniers8@moonfruit.com', 'Female', '99.243.74.208'],
-            ['10', 'Allister', 'Bernardi', 'abernardi9@instagram.com', 'Male', '45.210.112.131']
+            ['10', 'Allister', 'Bernardi', 'abernardi9@instagram.com', 'Male', '45.210.112.131'],
         ];
+        $this->file = new SplFileObject(
+            dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Fake' . DIRECTORY_SEPARATOR . 'dummy.csv'
+        );
+        $this->file->openFile('rbw');
     }
 
     /**
@@ -81,7 +75,7 @@ final class CsvTranslatorTest extends TestCase
      */
     public function testSerializeArray(): void
     {
-        $array = [$this->faker->paragraph, $this->faker->paragraph, $this->faker->paragraph];
+        $array = [$this->getFaker()->paragraph, $this->getFaker()->paragraph, $this->getFaker()->paragraph];
         assertSame(
             "\"{$array[0]}\",\"{$array[1]}\",\"{$array[2]}\"\n",
             $this->translator->serializeArray($array)
@@ -93,7 +87,7 @@ final class CsvTranslatorTest extends TestCase
      */
     public function testUnserializeArray(): void
     {
-        $array = [$this->faker->paragraph, $this->faker->paragraph, $this->faker->paragraph];
+        $array = [$this->getFaker()->paragraph, $this->getFaker()->paragraph, $this->getFaker()->paragraph];
         $csv = "\"{$array[0]}\",\"{$array[1]}\",\"{$array[2]}\"\n";
         assertSame(
             $array,
@@ -107,7 +101,7 @@ final class CsvTranslatorTest extends TestCase
      */
     public function testSerializeAndUnserializeArray(): void
     {
-        $array = [$this->faker->paragraph, $this->faker->paragraph, $this->faker->paragraph];
+        $array = [$this->getFaker()->paragraph, $this->getFaker()->paragraph, $this->getFaker()->paragraph];
         assertSame(
             $array,
             $this->translator->unserializeArray($this->translator->serializeArray($array))
@@ -120,9 +114,8 @@ final class CsvTranslatorTest extends TestCase
      */
     public function testCsvFileRead(): void
     {
-        $file = $this->file->read();
         $array = [];
-        foreach (explode("\n", $file) as $line) {
+        while ($line = $this->file->fgets()) {
             if (!empty($line)) {
                 $array[] = $this->translator->unserializeArray($line);
             }
@@ -139,7 +132,7 @@ final class CsvTranslatorTest extends TestCase
     public function testCsvFileReadLine(): void
     {
         $array = [];
-        foreach ($this->file->readLine() as $line) {
+        while ($line = $this->file->fgets()) {
             $array[] = $this->translator->unserializeArray($line);
         }
         assertSame(
@@ -159,7 +152,7 @@ final class CsvTranslatorTest extends TestCase
         }
         assertSame(
             $fakeFileContents,
-            $this->file->read()
+            $this->file->fread(4096)
         );
     }
 }
